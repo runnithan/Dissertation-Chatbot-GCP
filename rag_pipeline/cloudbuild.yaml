@@ -1,0 +1,31 @@
+steps:
+  # Step 1: Build the Docker image (using cloud/gcp as context)
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-t', 'europe-west2-docker.pkg.dev/trim-artifact-470312-d5/dissertation-chatbot/dissertation-chatbot:$COMMIT_SHA',
+      './cloud/gcp'
+    ]
+
+  # Step 2: Push the image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'push',
+      'europe-west2-docker.pkg.dev/trim-artifact-470312-d5/dissertation-chatbot/dissertation-chatbot:$COMMIT_SHA'
+    ]
+
+  # Step 3: Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args: [
+      'run', 'deploy', 'dissertation-chatbot',
+      '--image', 'europe-west2-docker.pkg.dev/trim-artifact-470312-d5/dissertation-chatbot/dissertation-chatbot:$COMMIT_SHA',
+      '--region', 'europe-west2',
+      '--platform', 'managed',
+      '--allow-unauthenticated',
+      '--port', '8080',
+      '--set-env-vars', 'GROQ_API_KEY=${_GROQ_API_KEY},GCS_BUCKET=dissertation-chatbot-data'
+    ]
+
+images:
+  - 'europe-west2-docker.pkg.dev/trim-artifact-470312-d5/dissertation-chatbot/dissertation-chatbot:$COMMIT_SHA'

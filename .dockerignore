@@ -1,0 +1,42 @@
+# --- Python cache & build files ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+*.ipynb_checkpoints/
+*.pytest_cache/
+build/
+dist/
+
+# --- System / IDE files ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# --- Git & local config ---
+.git/
+.gitignore
+
+# --- Environments & credentials ---
+.venv/
+env/
+venv/
+*.env
+.env
+
+# --- Local or non-deployment folders ---
+docs/
+fine_tune/
+outputs/
+test/
+data/            # data files are loaded from GCS instead
+notebooks/
+checkpoints/
+cache/
+__old__/
+
+# --- HuggingFace & model cache (already rebuilt in container) ---
+root/.cache/
+~/.cache/
