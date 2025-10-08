@@ -29,3 +29,7 @@ steps:
 
 images:
   - 'europe-west2-docker.pkg.dev/trim-artifact-470312-d5/dissertation-chatbot/dissertation-chatbot:$COMMIT_SHA'
+
+# 👇 Add this section
+options:
+  logging: CLOUD_LOGGING_ONLY
