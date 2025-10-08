@@ -4,7 +4,7 @@ steps:
     args: [
       'build',
       '-t', 'europe-west2-docker.pkg.dev/trim-artifact-470312-d5/dissertation-chatbot/dissertation-chatbot:$COMMIT_SHA',
-      './cloud/gcp'
+      '.'
     ]
 
   # Step 2: Push the image to Artifact Registry
