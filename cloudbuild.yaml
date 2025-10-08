@@ -24,10 +24,12 @@ steps:
       '--platform', 'managed',
       '--allow-unauthenticated',
       '--port', '8080',
-      '--memory', '1Gi',
+      '--memory', '2Gi',
       '--cpu', '2',
+      '--timeout', '600s',
       '--set-env-vars', 'GROQ_API_KEY=${_GROQ_API_KEY},GCS_BUCKET=dissertation-chatbot-data'
     ]
+
 
 images:
   - 'europe-west2-docker.pkg.dev/trim-artifact-470312-d5/dissertation-chatbot/dissertation-chatbot:$COMMIT_SHA'
