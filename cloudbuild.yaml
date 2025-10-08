@@ -24,6 +24,8 @@ steps:
       '--platform', 'managed',
       '--allow-unauthenticated',
       '--port', '8080',
+      '--memory', '1Gi',
+      '--cpu', '2',
       '--set-env-vars', 'GROQ_API_KEY=${_GROQ_API_KEY},GCS_BUCKET=dissertation-chatbot-data'
     ]
 
