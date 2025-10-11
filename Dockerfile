@@ -1,5 +1,9 @@
 FROM python:3.10-slim
 
+# --- Groq API Key (passed from Cloud Build substitution) ---
+ARG _GROQ_API_KEY
+ENV GROQ_API_KEY=${_GROQ_API_KEY}
+
 # --- Environment variables ---
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
