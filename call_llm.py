@@ -2,26 +2,33 @@ import os
 import requests
 
 def llm_pipeline(prompt, max_new_tokens=150):
+    """
+    Calls the Groq API to generate a dissertation-style response.
+    """
+    api_key = os.getenv("GROQ_API_KEY")
+    if not api_key:
+        raise ValueError("GROQ_API_KEY not found in environment variables")
+
     headers = {
-        "Authorization": f"Bearer {os.environ['GROQ_API_KEY']}",
-        "Content-Type": "application/json"
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
     }
 
     payload = {
-        "model": "mistral-7b-instruct",
+        "model": "mixtral-8x7b-32768",  # Groq’s most stable instruction-tuned model
         "messages": [
             {"role": "system", "content": "You are an expert dissertation assistant."},
-            {"role": "user", "content": prompt}
+            {"role": "user", "content": prompt},
         ],
         "temperature": 0.7,
-        "max_tokens": max_new_tokens
+        "max_tokens": max_new_tokens,
     }
 
-    response = requests.post(
-        "https://api.groq.com/openai/v1/chat/completions",
-        headers=headers,
-        json=payload
-    )
+    # ✅ Correct endpoint
+    url = "https://api.groq.com/openai/v1/chat/completions"
 
-    response.raise_for_status()  # Catch API errors
-    return [{"generated_text": response.json()["choices"][0]["message"]["content"]}]
+    response = requests.post(url, headers=headers, json=payload)
+    response.raise_for_status()  # Raise if status != 200
+
+    data = response.json()
+    return [{"generated_text": data["choices"][0]["message"]["content"]}]
