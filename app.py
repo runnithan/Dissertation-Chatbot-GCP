@@ -19,10 +19,32 @@ from rag_pipeline.gcs_loader import (
     load_faiss_index
 )
 
+# ✅ Add this block here
+from dotenv import load_dotenv
+
+# Load .env locally (ignored in Cloud Run)
+load_dotenv()
+
+# Diagnostic check (you can remove after verifying)
+if os.getenv("K_SERVICE"):
+    print("🚀 Running in Cloud Run. Secret should come from Secret Manager.")
+else:
+    print("💻 Running locally. Secret should come from .env file.")
+
+if os.getenv("GROQ_API_KEY"):
+    print("✅ GROQ_API_KEY detected in environment.")
+else:
+    print("⚠️ GROQ_API_KEY missing! Check your .env or Secret Manager setup.")
+
 # --- App Setup ---
 app = FastAPI()
 ROOT_DIR = Path(__file__).resolve().parent
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# ✅ Health check route (add this here)
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
 
 # --- Load RAG Components ---
 print("🔧 Initialising RAG pipeline...")
