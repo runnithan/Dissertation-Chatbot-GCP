@@ -44,7 +44,12 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 # ✅ Health check route (add this here)
 @app.get("/health")
 def health_check():
-    return {"status": "ok"}
+    import os
+    return {
+        "status": "ok",
+        "running_in": "cloud" if os.getenv("K_SERVICE") else "local",
+        "groq_key_loaded": bool(os.getenv("GROQ_API_KEY"))
+    }
 
 # --- Load RAG Components ---
 print("🔧 Initialising RAG pipeline...")
@@ -75,12 +80,21 @@ async def handle_query(request: Request):
     if not question:
         return JSONResponse(content={"answer": "⚠️ Please provide a valid question."})
 
-    answer = query_rag_pipeline(
-        question,
-        embedding_model,
-        faiss_index,
-        chunks,
-        llm_pipeline,
-        tokenizer
-    )
-    return JSONResponse(content={"answer": answer})
+    try:
+        answer = query_rag_pipeline(
+            question,
+            embedding_model,
+            faiss_index,
+            chunks,
+            llm_pipeline,
+            tokenizer
+        )
+        return JSONResponse(content={"answer": answer})
+
+    except Exception as e:
+        import traceback
+        print("❌ Error in query_rag_pipeline:", traceback.format_exc())
+        return JSONResponse(
+            status_code=500,
+            content={"answer": "⚠️ An internal error occurred. Please try again later."}
+        )
