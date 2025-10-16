@@ -54,10 +54,17 @@ def health_check():
 # --- Load RAG Components ---
 print("🔧 Initialising RAG pipeline...")
 
-# Load from GCS bucket
-chunks = load_chunks()
-embeddings = load_embeddings()
-faiss_index = load_faiss_index()
+# --- Model Version Handling ---
+MODEL_VERSION = os.getenv("MODEL_VERSION", "v1.0")
+print(f"🧠 Loading model version: {MODEL_VERSION}")
+
+print(f"📦 Using bucket: {GCS_BUCKET}")
+
+
+# Load from GCS bucket (version-aware)
+chunks = load_chunks(model_version=MODEL_VERSION)
+embeddings = load_embeddings(model_version=MODEL_VERSION)
+faiss_index = load_faiss_index(model_version=MODEL_VERSION)
 
 embedding_model = load_embedding_model()
 llm_pipeline = load_llm(mode="cloud")  
