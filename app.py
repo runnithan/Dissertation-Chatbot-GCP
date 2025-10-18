@@ -56,17 +56,23 @@ GCS_BUCKET = os.getenv("GCS_BUCKET", "dissertation-chatbot-data")
 print(f"🧠 Loading model version: {MODEL_VERSION}")
 print(f"📦 Using bucket: {GCS_BUCKET}")
 
-# These will raise if anything is missing — that’s desired behaviour
-chunks = load_chunks(model_version=MODEL_VERSION)
-embeddings = load_embeddings(model_version=MODEL_VERSION)
-faiss_index = load_faiss_index(model_version=MODEL_VERSION)
+try:
+    chunks = load_chunks(model_version=MODEL_VERSION)
+    embeddings = load_embeddings(model_version=MODEL_VERSION)
+    faiss_index = load_faiss_index(model_version=MODEL_VERSION)
+    print(f"✅ Loaded {len(chunks)} chunks.")
+except Exception as e:
+    import traceback
+    print("⚠️ Failed to load RAG data from GCS:")
+    print(traceback.format_exc())
+    chunks = embeddings = faiss_index = None
 
+# Always load these locally so app still starts
 embedding_model = load_embedding_model()
 llm_pipeline = load_llm(mode="cloud")
 tokenizer = load_tokenizer()
 
-print(f"✅ Loaded {len(chunks)} chunks.")
-print("✅ Components ready.")
+print("✅ Components ready (startup non-blocking).")
 
 # --- Serve frontend ---
 @app.get("/")
