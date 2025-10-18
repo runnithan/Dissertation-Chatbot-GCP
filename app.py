@@ -60,7 +60,6 @@ print(f"🧠 Loading model version: {MODEL_VERSION}")
 
 print(f"📦 Using bucket: {GCS_BUCKET}")
 
-
 # Load from GCS bucket (version-aware)
 chunks = load_chunks(model_version=MODEL_VERSION)
 embeddings = load_embeddings(model_version=MODEL_VERSION)
