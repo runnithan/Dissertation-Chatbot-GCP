@@ -5,6 +5,7 @@ from pathlib import Path
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
+from dotenv import load_dotenv
 
 from rag_pipeline.query_pipeline import (
     load_embedding_model,
@@ -12,72 +13,67 @@ from rag_pipeline.query_pipeline import (
     load_tokenizer,
     query_rag_pipeline
 )
-
 from rag_pipeline.gcs_loader import (
     load_chunks,
     load_embeddings,
     load_faiss_index
 )
 
-# ✅ Add this block here
-from dotenv import load_dotenv
-
-# Load .env locally (ignored in Cloud Run)
+# --- Load environment ---
 load_dotenv()
 
-# Diagnostic check (you can remove after verifying)
+# --- Diagnostics ---
 if os.getenv("K_SERVICE"):
-    print("🚀 Running in Cloud Run. Secret should come from Secret Manager.")
+    print("🚀 Running in Cloud Run. Secrets come from Secret Manager.")
 else:
-    print("💻 Running locally. Secret should come from .env file.")
+    print("💻 Running locally (.env).")
 
 if os.getenv("GROQ_API_KEY"):
-    print("✅ GROQ_API_KEY detected in environment.")
+    print("✅ GROQ_API_KEY detected.")
 else:
-    print("⚠️ GROQ_API_KEY missing! Check your .env or Secret Manager setup.")
+    print("⚠️ GROQ_API_KEY missing!")
 
-# --- App Setup ---
+# --- App setup ---
 app = FastAPI()
 ROOT_DIR = Path(__file__).resolve().parent
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# ✅ Health check route (add this here)
+# --- Health check ---
 @app.get("/health")
 def health_check():
-    import os
     return {
         "status": "ok",
         "running_in": "cloud" if os.getenv("K_SERVICE") else "local",
         "groq_key_loaded": bool(os.getenv("GROQ_API_KEY"))
     }
 
-# --- Load RAG Components ---
+# --- Load RAG components eagerly ---
 print("🔧 Initialising RAG pipeline...")
 
-# --- Model Version Handling ---
 MODEL_VERSION = os.getenv("MODEL_VERSION", "v1.0")
-print(f"🧠 Loading model version: {MODEL_VERSION}")
+GCS_BUCKET = os.getenv("GCS_BUCKET", "dissertation-chatbot-data")
 
+print(f"🧠 Loading model version: {MODEL_VERSION}")
 print(f"📦 Using bucket: {GCS_BUCKET}")
 
-# Load from GCS bucket (version-aware)
+# These will raise if anything is missing — that’s desired behaviour
 chunks = load_chunks(model_version=MODEL_VERSION)
 embeddings = load_embeddings(model_version=MODEL_VERSION)
 faiss_index = load_faiss_index(model_version=MODEL_VERSION)
 
 embedding_model = load_embedding_model()
-llm_pipeline = load_llm(mode="cloud")  
+llm_pipeline = load_llm(mode="cloud")
 tokenizer = load_tokenizer()
 
 print(f"✅ Loaded {len(chunks)} chunks.")
 print("✅ Components ready.")
 
-# --- Serve Frontend ---
+# --- Serve frontend ---
 @app.get("/")
 def serve_frontend():
     return FileResponse(ROOT_DIR / "static" / "index.html")
 
-# --- Query Endpoint ---
+# --- Query endpoint ---
 @app.post("/query")
 async def handle_query(request: Request):
     body = await request.json()
@@ -96,11 +92,10 @@ async def handle_query(request: Request):
             tokenizer
         )
         return JSONResponse(content={"answer": answer})
-
     except Exception as e:
         import traceback
         print("❌ Error in query_rag_pipeline:", traceback.format_exc())
         return JSONResponse(
             status_code=500,
-            content={"answer": "⚠️ An internal error occurred. Please try again later."}
+            content={"answer": "⚠️ Internal error. Please try again later."}
         )
